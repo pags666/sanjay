@@ -1,3 +1,42 @@
+# name: Copy sentiment_data.csv to streamlit branch
+
+# on:
+#   workflow_run:
+#     workflows: ["Get Sentiment and update GitHub page"]
+#     types:
+#       - completed
+#   workflow_dispatch: # allows manual triggering of the workflow
+
+# jobs:
+#   copy-csv:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v4
+#         with:
+#           ref: streamlit
+#           path: dest
+
+#       - uses: actions/checkout@v4
+#         with:
+#           ref: main
+#           path: src
+
+#       - name: copy db file
+#         shell: bash
+#         run: |
+#           cp src/database/* dest/datasets/
+
+#       - name: commit files
+#         working-directory: dest
+#         shell: bash
+#         run: |
+#           git config user.name "Deploy from CI"
+#           git config user.email ""
+#           git add .
+#           git commit -m "Deploy $GITHUB_SHA to streamlit"
+#           git push
+
+
 name: Copy sentiment_data.csv to streamlit branch
 
 on:
@@ -5,11 +44,13 @@ on:
     workflows: ["Get Sentiment and update GitHub page"]
     types:
       - completed
-  workflow_dispatch: # allows manual triggering of the workflow
+
+  workflow_dispatch:
 
 jobs:
   copy-csv:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -22,16 +63,20 @@ jobs:
           path: src
 
       - name: copy db file
-        shell: bash
         run: |
-          cp src/database/* dest/datasets/
+          mkdir -p dest/datasets
+          cp -r src/database/* dest/datasets/
 
       - name: commit files
         working-directory: dest
-        shell: bash
         run: |
           git config user.name "Deploy from CI"
-          git config user.email ""
+          git config user.email "actions@github.com"
+
           git add .
+
+          git diff --cached --quiet && echo "No changes" && exit 0
+
           git commit -m "Deploy $GITHUB_SHA to streamlit"
-          git push
+
+          git push origin streamlit
