@@ -21,10 +21,10 @@ class GoogleFinanceSource(NewsSource):
     def __init__(self):
         self.base_url: str = 'https://www.google.com/finance/quote'
         self.articles: list[dict[str, str]] = []
-        self.article_selector: str = 'div.z4rs2b'
-        self.headline_selector: str = 'div.Yfwt5'
-        self.date_selector: str = 'div.Adak'
-        self.source_selector: str = 'div.sfyJob'
+        self.article_selector:str = 'div.S4GvHe'
+        self.headline_selector: str= 'div.TQWIED'
+        #self.date_selector: str = 'div.Adak'
+        #self.source_selector: str = 'div.sfyJob'
         self.link_selector: str = 'a'
 
     @override
@@ -114,6 +114,7 @@ class YahooFinanceSource(NewsSource):
 
             soup = BeautifulSoup(response, 'html.parser')
             article_elements = soup.select(self.article_selector)
+            logger.info(f"Found {len(article_elements)} Google articles for {ticker}")
 
             for article in article_elements:
                 try:
