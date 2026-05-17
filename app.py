@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from database import DatabaseManager
+from src.database import DatabaseManager
 
 st.set_page_config(
     page_title="NIFTY Sentiment Dashboard",
