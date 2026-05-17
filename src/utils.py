@@ -144,6 +144,23 @@ def parse_date(
         datetime object
     """
     now: datetime = datetime.now()
+    if "h ago" in date_str:
+            hours = int(date_str.replace("h ago", "").strip())
+            return (
+                datetime.now() - timedelta(hours=hours)
+            ).strftime("%Y-%m-%d %H:%M:%S")
+        
+        elif "d ago" in date_str:
+            days = int(date_str.replace("d ago", "").strip())
+            return (
+                datetime.now() - timedelta(days=days)
+            ).strftime("%Y-%m-%d %H:%M:%S")
+        
+        elif "mo ago" in date_str:
+            months = int(date_str.replace("mo ago", "").strip())
+            return (
+                datetime.now() - timedelta(days=months * 30)
+            ).strftime("%Y-%m-%d %H:%M:%S")
     if relative:
         parts: list[str] = date_string.split()
 
@@ -179,23 +196,6 @@ def parse_date(
             datetime_object = now - timedelta(days=1)
         elif unit.startswith('today'):
             datetime_object = now
-        if "h ago" in date_str:
-            hours = int(date_str.replace("h ago", "").strip())
-            return (
-                datetime.now() - timedelta(hours=hours)
-            ).strftime("%Y-%m-%d %H:%M:%S")
-        
-        elif "d ago" in date_str:
-            days = int(date_str.replace("d ago", "").strip())
-            return (
-                datetime.now() - timedelta(days=days)
-            ).strftime("%Y-%m-%d %H:%M:%S")
-        
-        elif "mo ago" in date_str:
-            months = int(date_str.replace("mo ago", "").strip())
-            return (
-                datetime.now() - timedelta(days=months * 30)
-            ).strftime("%Y-%m-%d %H:%M:%S")
         else:
             logger.warning(f'Unknown date format: {date_string}')
             return ''
