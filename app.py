@@ -1,13 +1,16 @@
+import sys
+sys.path.append("src")
+
 import streamlit as st
 import pandas as pd
-from src.database import DatabaseManager
+from database import DatabaseManager
 
 st.set_page_config(
     page_title="NIFTY Sentiment Dashboard",
     layout="wide"
 )
 
-st.title("NIFTY 50 Stocks Sentiment Analyzer")
+st.title("NIFTY 50 Stocks Sentiment Dashboard")
 
 # ---------------- DATABASE ----------------
 
@@ -16,18 +19,20 @@ db_manager = DatabaseManager()
 article_data = db_manager.get_articles()
 ticker_metadata = db_manager.get_ticker_metadata()
 
-# ---------------- FILTERS ----------------
+# ---------------- SIDEBAR ----------------
 
 st.sidebar.header("Filters")
 
 date_range = st.sidebar.selectbox(
-    "Pick the Date Range",
+    "Select Time Range",
     ["Past 24 Hours", "Past 7 Days", "Past 1 Month"]
 )
 
 # ---------------- DATE FILTER ----------------
 
-article_data["date_posted"] = pd.to_datetime(article_data["date_posted"])
+article_data["date_posted"] = pd.to_datetime(
+    article_data["date_posted"]
+)
 
 now = pd.Timestamp.now()
 
@@ -46,7 +51,7 @@ else:
         article_data["date_posted"] >= now - pd.Timedelta(days=30)
     ]
 
-# ---------------- SENTIMENT AGGREGATION ----------------
+# ---------------- AGGREGATE ----------------
 
 ticker_scores = (
     filtered_articles[
@@ -70,27 +75,39 @@ final_df = pd.merge(
     how="inner"
 )
 
+# ---------------- RENAME ----------------
+
+final_df.rename(
+    columns={
+        "compound_sentiment": "Sentiment Score",
+        "positive_sentiment": "Positive",
+        "negative_sentiment": "Negative",
+        "neutral_sentiment": "Neutral",
+    },
+    inplace=True,
+)
+
 # ---------------- DISPLAY ----------------
 
-st.subheader(f"Showing Data For: {date_range}")
+st.subheader(f"Showing Data: {date_range}")
 
 st.dataframe(final_df)
 
-# ---------------- STOCK NEWS ----------------
+# ---------------- NEWS VIEW ----------------
 
-st.subheader("Stock Specific News")
+st.subheader("Stock News")
 
-selected_ticker = st.selectbox(
+selected_stock = st.selectbox(
     "Select Stock",
     final_df["ticker"].unique()
 )
 
-news_df = filtered_articles[
-    filtered_articles["ticker"] == selected_ticker
+stock_news = filtered_articles[
+    filtered_articles["ticker"] == selected_stock
 ]
 
 st.dataframe(
-    news_df[
+    stock_news[
         [
             "headline",
             "source",
