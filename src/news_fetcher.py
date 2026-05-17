@@ -98,9 +98,9 @@ class YahooFinanceSource(NewsSource):
     def __init__(self):
         self.base_url = 'https://finance.yahoo.com/quote'
         self.articles: list[dict[str, str]] = []
-        self.article_selector: str = 'li.stream-item.story-item.yf-1drgw5l'
-        self.headline_selector: str = 'a h3'
-        self.footer_selector: str = 'div.publishing.yf-1weyqlp'
+        self.article_selector: str = 'section[data-testid="storyitem"]'
+        self.headline_selector: str = 'h3.clamp'
+        self.footer_selector: str = 'div.footer'
         self.link_selector: str = 'a'
 
     @override
