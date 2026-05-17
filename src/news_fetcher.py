@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import final, override  # type: ignore
-
+import re
 from bs4 import BeautifulSoup, Tag
 from loguru import logger
 
@@ -149,11 +149,19 @@ class YahooFinanceSource(NewsSource):
                     # Get publisher and date from the footer
                     source = 'Yahoo Finance'  # Default source
                     time_str = ''
+                    
                     if footer_tag:
-                        footer_text = footer_tag.text.strip()
-                        parts = footer_text.split('•')
-                        source = parts[0].strip() if len(parts) > 0 else 'Yahoo Finance'
-                        time_str = parts[1].strip() if len(parts) > 1 else ''
+                        footer_text = footer_tag.get_text(" ", strip=True)
+                    
+                        match = re.search(
+                            r'(\d+)\s*(m|h|d|wk|mo|y)\s+ago',
+                            footer_text,
+                            re.IGNORECASE,
+                        )
+                    
+                        time_str = match.group(0) if match else ''
+                    
+                        source = footer_text.replace(time_str, '').strip()
 
                     date_posted: str = parse_date(time_str)
 
