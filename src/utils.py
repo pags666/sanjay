@@ -125,42 +125,32 @@ def fetch_metadata(ticker: str):
 
     return [ticker, sector, industry, mCap, companyName]
 
-
 def parse_date(
     date_string: str, relative: bool = True, format: str | None = None
 ) -> str:
-    """google news contains date info in relative format. This method parses the relative date and turns into absolute dates.
+    """Parse relative and absolute date strings into standard datetime format."""
 
-    Parameters
-    ----------
-    date_string : str
-        article date in relative terms
-    relative : bool
-        indicates if the date_string is in relative format
-
-    Returns
-    -------
-    datetime
-        datetime object
-    """
     now: datetime = datetime.now()
-    if "h ago" in date_str:
-            hours = int(date_str.replace("h ago", "").strip())
-            return (
-                datetime.now() - timedelta(hours=hours)
-            ).strftime("%Y-%m-%d %H:%M:%S")
-        
-        elif "d ago" in date_str:
-            days = int(date_str.replace("d ago", "").strip())
-            return (
-                datetime.now() - timedelta(days=days)
-            ).strftime("%Y-%m-%d %H:%M:%S")
-        
-        elif "mo ago" in date_str:
-            months = int(date_str.replace("mo ago", "").strip())
-            return (
-                datetime.now() - timedelta(days=months * 30)
-            ).strftime("%Y-%m-%d %H:%M:%S")
+
+    # Yahoo compact format support
+    if 'h ago' in date_string:
+        hours = int(date_string.replace('h ago', '').strip())
+        return (
+            now - timedelta(hours=hours)
+        ).strftime('%Y-%m-%d %H:%M:%S')
+
+    elif 'd ago' in date_string:
+        days = int(date_string.replace('d ago', '').strip())
+        return (
+            now - timedelta(days=days)
+        ).strftime('%Y-%m-%d %H:%M:%S')
+
+    elif 'mo ago' in date_string:
+        months = int(date_string.replace('mo ago', '').strip())
+        return (
+            now - relativedelta(months=months)
+        ).strftime('%Y-%m-%d %H:%M:%S')
+
     if relative:
         parts: list[str] = date_string.split()
 
@@ -176,54 +166,65 @@ def parse_date(
         else:
             numeric = ''.join(filter(str.isdigit, raw))
             value = int(numeric) if numeric else 1
-        
+
         unit = parts[1] if len(parts) > 1 else raw
+
         if unit.startswith('minute'):
             datetime_object = now - timedelta(minutes=value)
+
         elif unit.startswith('hour'):
             datetime_object = now - timedelta(hours=value)
+
         elif unit.startswith('day'):
             datetime_object = now - timedelta(days=value)
+
         elif unit.startswith('week'):
             datetime_object = now - timedelta(weeks=value)
-        elif unit.startswith('month'):
+
+        elif unit.startswith('month') or 'mo' in unit:
             datetime_object = now - relativedelta(months=value)
-        elif 'mo' in unit:
-            datetime_object = now - relativedelta(months=value)
+
         elif unit.startswith('year'):
             datetime_object = now - relativedelta(years=value)
+
         elif unit.startswith('yesterday'):
             datetime_object = now - timedelta(days=1)
+
         elif unit.startswith('today'):
             datetime_object = now
+
         else:
             logger.warning(f'Unknown date format: {date_string}')
             return ''
+
     else:
         if not format:
             logger.error('Format string is required for absolute date parsing.')
             return ''
-        elif format.__contains__('%Y'):
-            datetime_object: datetime = datetime.strptime(date_string, format)
+
+        elif '%Y' in format:
+            datetime_object = datetime.strptime(date_string, format)
+
         else:
             try:
-                datetime_object = datetime.strptime(date_string, format).replace(
-                    year=2025
-                )
+                datetime_object = datetime.strptime(
+                    date_string,
+                    format
+                ).replace(year=2025)
+
                 datetime_object = (
                     datetime_object
                     if datetime_object < now
-                    else datetime_object.replace(year=datetime_object.year - 1)
+                    else datetime_object.replace(
+                        year=datetime_object.year - 1
+                    )
                 )
 
             except Exception as e:
                 logger.warning(f"Error parsing date '{date_string}': {e}")
                 return ''
 
-    # Format the datetime object to a string
-    datetime_format: str = '%Y-%m-%d %H:%M:%S'
-    formatted_date: str = datetime_object.strftime(datetime_format)
-    return formatted_date
+    return datetime_object.strftime('%Y-%m-%d %H:%M:%S')
 
 def get_relative_date(option: str) -> str:
     now = datetime.now()
