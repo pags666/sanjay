@@ -17,7 +17,7 @@ if src_abs_path not in sys.path:
 else:
     print(f"'{src_abs_path}' is already in sys.path")
 
-from database import DatabaseManager
+from src.database import DatabaseManager
 
 tempdir_path = tempfile.mkdtemp()
 print(f'Temporary directory created at: {tempdir_path}')
