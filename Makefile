@@ -8,7 +8,7 @@
 default: install lint test
 
 run:
-	uv run src/main.py
+	uv run -m src.main
 
 dashboard:
 	uv run src/dashboard-generation.py
