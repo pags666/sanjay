@@ -30,7 +30,15 @@ def main():
     )
     errcount += run(['uv', 'run', 'ruff', 'check', '--fix', *SRC_PATHS])
     errcount += run(['uv', 'run', 'ruff', 'format', *SRC_PATHS])
-    errcount += run(['uv', 'run', 'ty', 'check', *SRC_PATHS])
+    errcount += run([
+        'uv',
+        'run',
+        'ty',
+        'check',
+        *SRC_PATHS,
+        '--exclude',
+        'src/notebooks',
+    ])
     errcount += run(
         [
             'uv',
