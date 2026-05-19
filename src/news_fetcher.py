@@ -184,57 +184,136 @@ class YahooFinanceSource(NewsSource):
         return self.articles
 
 
+# @final
+# class FinologySource(NewsSource):
+#     def __init__(self):
+#         self.base_url = 'https://ticker.finology.in/company'
+#         self.articles: list[dict[str, str]] = []
+#         self.article_selector: str = "div.card.cardscreen"
+#         self.headline_selector: str = "div.blog-cardscreen h5"
+#         self.link_selector: str = "a.bundlelink"
+#         self.date_selector: str = "span.date"
+
+#     @override
+#     def get_articles(self, ticker: str) -> list[dict[str, str]]:
+#         try:
+#             url = f'{self.base_url}/{ticker}'
+#             response = get_webpage_content(url, custom_header=True, impersonate=True)
+#             if not response:
+#                 logger.warning(f'No response from Finology for {ticker}')
+#                 return self.articles
+
+#             soup = BeautifulSoup(response, 'html.parser')
+#             article_elements = soup.select(self.article_selector)
+
+#             for article in article_elements:
+#                 try:
+#                     headline_tag: Tag | None = article.select_one(
+#                         self.headline_selector
+#                     )
+#                     date_tag: Tag | None = article.select_one(self.date_selector)
+
+#                     if not headline_tag or not date_tag:
+#                         logger.warning(
+#                             f'Missing elements in Finology article for {ticker}'
+#                         )
+#                         continue
+
+#                     headline: str = headline_tag.text.strip()
+#                     date_str: str = date_tag.text.strip()
+
+#                     date_posted: str = parse_date(
+#                         date_str, relative=False, format='%d %b, %I:%M %p'
+#                     )
+
+#                     self.articles.append(
+#                         {
+#                             'ticker': ticker,
+#                             'headline': headline,
+#                             'date_posted': date_posted,
+#                             'article_link': url,  # Finology links point back to the main page
+#                             'source': 'Finology',
+#                         }
+#                     )
+#                 except Exception as e:
+#                     logger.warning(
+#                         f'Error parsing Finology article for {ticker}: {str(e)}'
+#                     )
+#                     continue
+
+#         except Exception as e:
+#             logger.error(f'Error fetching from Finology for {ticker}: {str(e)}')
+#         return self.articles
+
 @final
 class FinologySource(NewsSource):
     def __init__(self):
-        self.base_url = 'https://ticker.finology.in/company'
+        self.base_url = 'https://ticker.finology.in/discover/tag'
         self.articles: list[dict[str, str]] = []
-        self.article_selector: str = "div.card.cardscreen"
-        self.headline_selector: str = "div.blog-cardscreen h5"
-        self.link_selector: str = "a.bundlelink"
-        self.date_selector: str = "span.date"
+        self.article_selector: str = 'div.cardscreen'
+        self.link_selector: str = 'a.bundlelink'
 
     @override
     def get_articles(self, ticker: str) -> list[dict[str, str]]:
         try:
-            url = f'{self.base_url}/{ticker}'
-            response = get_webpage_content(url, custom_header=True, impersonate=True)
+            self.articles = []
+
+            url = f'{self.base_url}/{ticker.lower()}'
+
+            response = get_webpage_content(
+                url,
+                custom_header=True,
+                impersonate=True,
+            )
+
             if not response:
                 logger.warning(f'No response from Finology for {ticker}')
                 return self.articles
 
             soup = BeautifulSoup(response, 'html.parser')
+
             article_elements = soup.select(self.article_selector)
+
+            logger.info(
+                f'Found {len(article_elements)} Finology articles for {ticker}'
+            )
 
             for article in article_elements:
                 try:
-                    headline_tag: Tag | None = article.select_one(
-                        self.headline_selector
+                    link_tag: Tag | None = article.select_one(
+                        self.link_selector
                     )
-                    date_tag: Tag | None = article.select_one(self.date_selector)
 
-                    if not headline_tag or not date_tag:
-                        logger.warning(
-                            f'Missing elements in Finology article for {ticker}'
-                        )
+                    if not link_tag:
                         continue
 
-                    headline: str = headline_tag.text.strip()
-                    date_str: str = date_tag.text.strip()
-
-                    date_posted: str = parse_date(
-                        date_str, relative=False, format='%d %b, %I:%M %p'
+                    article_link: str = (
+                        'https://ticker.finology.in'
+                        + link_tag.get('href', '')
                     )
+
+                    img_tag: Tag | None = article.find('img')
+
+                    headline: str = ''
+
+                    if img_tag:
+                        headline = img_tag.get('alt', '').strip()
+
+                    if not headline:
+                        continue
 
                     self.articles.append(
                         {
                             'ticker': ticker,
                             'headline': headline,
-                            'date_posted': date_posted,
-                            'article_link': url,  # Finology links point back to the main page
+                            'date_posted': datetime.now().strftime(
+                                '%Y-%m-%d %H:%M:%S'
+                            ),
+                            'article_link': article_link,
                             'source': 'Finology',
                         }
                     )
+
                 except Exception as e:
                     logger.warning(
                         f'Error parsing Finology article for {ticker}: {str(e)}'
@@ -243,9 +322,8 @@ class FinologySource(NewsSource):
 
         except Exception as e:
             logger.error(f'Error fetching from Finology for {ticker}: {str(e)}')
+
         return self.articles
-
-
 class TickerNewsObject:
     def __init__(self, ticker: str) -> None:
         self.ticker: str = ticker
