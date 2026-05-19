@@ -222,7 +222,7 @@ class FinologySource(NewsSource):
                     headline: str = headline_tag.text.strip()
                     date_str: str = date_tag.text.strip()
 
-                    date_posted = parse_date(
+                    date_posted: str= parse_date(
                         date_str, relative=False, format='%d %b, %I:%M %p'
                     )
 
