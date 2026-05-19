@@ -4,11 +4,11 @@ from tqdm import tqdm  # Import tqdm
 from transformers.models.bert import BertForSequenceClassification, BertTokenizer
 from transformers.pipelines import pipeline
 
-import database as db
+from src.database import DatabaseManager
 
 
 def main():
-    conn = db.DatabaseManager()
+    conn = DatabaseManager()
     articles_df = conn.get_articles(has_sentiment=False, n=1000)
 
     headlines = articles_df['headline'].to_list()
