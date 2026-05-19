@@ -11,8 +11,7 @@ run:
 	uv run -m src.main
 
 dashboard:
-	uv run src/dashboard-generation.py
-
+	uv run -m src.dashboard-generation
 install:
 	uv sync
 
