@@ -25,7 +25,7 @@ which are then processed for sentiment analysis using [yiyanghkust/finbert-tone]
 </details>
 
 
-Live instances of the app can be found on [Streamlit Cloud](https://nifty-sad.streamlit.app/)
+Live instances of the app can be found on [Streamlit Cloud](https://jeyabharathi666.streamlit.app/)
 
 Here is the link to [Companion Article](https://xumitcapital.medium.com/sentiment-analysis-dashboard-using-python-d40506e2709d).
 
